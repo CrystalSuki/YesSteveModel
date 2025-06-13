@@ -1,0 +1,116 @@
+import proguard.gradle.ProGuardTask
+
+buildscript {
+    repositories {
+        maven { url = "https://plugins.gradle.org/m2/" }
+        maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://maven.parchmentmc.org' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath 'org.gradle.toolchains:foojay-resolver:0.5.0'
+        //classpath 'org.parchmentmc:librarian:1.+'
+        classpath 'com.guardsquare:proguard-gradle:7.3.1'
+    }
+}
+
+
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    // id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+}
+
+version = '1.1.6'
+group = 'com.elfmcys.yesstevemodel'
+archivesBaseName = 'yesstevemodel-1.20-release'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: '1.20'
+    // mappings channel: 'parchment', version: '2023.03.12-1.19.3'
+
+    copyIdeResources = true
+
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('run/client_a')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        client2 {
+            parent minecraft.runs.client
+            workingDirectory project.file('run/client_b')
+            args '--username', 'tartaric_acid'
+            mods {
+                yesstevemodel {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run/server')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    flatDir {
+        dir 'libs'
+    }
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20-46.0.14'
+    implementation fg.deobf('libs:firstperson-forge:2.2.3-mc1.20')
+    implementation fg.deobf('libs:notenoughanimations-forge:1.6.4-mc1.20')
+}
+
+jar {
+    manifest {
+        attributes([
+                "Implementation-Title"  : project.name,
+                "Implementation-Version": "${version}"
+        ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// 运行此 task 编译并混淆模组
+task proguard(type: ProGuardTask, dependsOn: build) {
+    configuration file('proguard.pro')
+    injars(tasks.named('jar', Jar).flatMap { it.archiveFile })
+    outjars(file("${buildDir}/libs/${archivesBaseName}-${version}-minified.jar"))
+}
