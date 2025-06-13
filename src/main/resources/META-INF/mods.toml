@@ -1,0 +1,14 @@
+modLoader="javafml"
+loaderVersion="[46,)"
+license="All rights reserved"
+
+[[mods]]
+    modId="yes_steve_model"
+    version="${file.jarVersion}"
+    displayName="Yes Steve Model"
+    # updateJSONURL="https://change.me.example.invalid/updates.json"
+    # displayURL="https://change.me.to.your.mods.homepage.example.invalid/"
+    # logoFile="yesstevemodel.png"
+    credits="bernie-g (GeckoLib), fadookie (mclib), TT432 & SQwatermark (helped me solve many difficult problems)"
+    authors="YS Group, TartaricAcid, AryochiL"
+    description="A mod based on GeckoLib that modifies the player model"
